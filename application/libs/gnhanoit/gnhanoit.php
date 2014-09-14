@@ -33,6 +33,7 @@ class gnhanoit
 				);
 			}
 			echo $this->crearModelo($_POST["table"],$array)?"Creo el modelo":"No fue posible crear el modelo";
+			echo $this->crearControlador($_POST["table"],$array)?"Creo el controlador":"No fue posible crear el modelo";
 		}else{
 			echo "Debes seleccionar una base de datos";
 		}
@@ -49,7 +50,7 @@ class gnhanoit
 		
 		$cModel = "";
 		$cModel .= "<?php\n"; 
-		$cModel .= "\tclass ".ucwords($nombreClase)." extends ActiveRecord\Model\n";
+		$cModel .= "\tclass ".strtolower($nombreClase)." extends ActiveRecord\Model\n";
 		$cModel .= "\t{\n";
 		$cModel .= "\t\tpublic static $"."table_name = ".'"'.$nombreClase.'"'.";\n";
 		$cModel .= "\t\tpublic static $"."primary_key = ".'"'.$primary.'"'.";\n";
@@ -69,26 +70,82 @@ class gnhanoit
 
 	public function crearControlador($nombreClase, $columns){
 
-		$apguardar = "$"."parametros = array(";
+		$apguardar = "$"."parametros = array(\n";
 		$apmodificar = "";
 		foreach ($columns as $value) {
-			$apguardar .= "'".$value["Field"]."'=>$"."_POST['txt".ucwords($value["Field"])."'],";
-			$apmodificar .= "$"."modelo->".strtolower($value["Field"])."'= $"."_POST['txt".ucwords($value["Field"])."'];";
+			$apguardar .= "\t\t\t\t'".$value["Field"]."'=>$"."_POST['txt".ucwords($value["Field"])."'],\n";
+			$apmodificar .= "\t\t\t$"."modelo->".strtolower($value["Field"])."= $"."_POST['txt".ucwords($value["Field"])."'];\n";
 		}
-		$apguardar = ");";
+		$apguardar .= "\t\t\t);";
 		
-		$cModel = "";
-		$cModel .= "<?php\n"; 
-		$cModel .= "\tclass ".ucwords($nombreClase)." extends controller\n";
-		$cModel .= "\t{\n";
-		$cModel .= "\t\tpublic function index(){\n";
-		$cModel .= "\t\t\tpublic static $"."primary_key = ".'"'.$primary.'"'.";\n";
-		$cModel .= "\t}\n";
-		$cModel .= "?>";
+		$cController = "";
+		$cController .= "<?php\n"; 
+		$cController .= "\tclass ".ucwords($nombreClase)."Controller extends controller\n";
+		$cController .= "\t{\n";
+		$cController .= "\t\t$"."this->layout='header';"."\n\n";
+		$cController .= "\t\tpublic function index(){\n";
+		$cController .= "\t\t\t$".ucwords($nombreClase)." = $"."this->loadModel("."'".ucwords($nombreClase)."'".")->find('all');\n";
+		$cController .= "\t\t\t$"."this->render('index',array('datos'=>$".ucwords($nombreClase)."));\n";
+		$cController .= "\t\t}\n\n";
+
+		$cController .= "\t\tpublic function crear(){\n";
+		$cController .= "\t\t\t$".ucwords($nombreClase)." = $"."this->loadModel("."'".strtolower($nombreClase)."'".")->find('all');\n\n";
+		$cController .= "\t\t\t".$apguardar."\n";
+		$cController .= "\t\t\t$"."mensaje = null;\n";
+		$cController .= "\t\t\t$"."modelo = new ".strtolower($nombreClase)."($"."parametros);\n";
+		$cController .= "\t\t\ttry{\n";
+		$cController .= "\t\t\t\tif($"."modelo->save()){\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = 'Operación exitosa';\n";
+		$cController .= "\t\t\t\t}else{\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = 'Ha ocurrido un error';\n";
+		$cController .= "\t\t\t\t}\n";
+		$cController .= "\t\t\t}catch(Exception $"."e){\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = $"."e->getMessage();\n";
+		$cController .= "\t\t\t}\n";
+		$cController .= "\t\t\t$"."this->render('index',array('datos'=>$".ucwords($nombreClase).",'mensaje'=>$"."mensaje));\n";
+		$cController .= "\t\t}\n\n";
+
+		$cController .= "\t\tpublic function modificar(){\n";
+		$cController .= "\t\t\t$".ucwords($nombreClase)." = $"."this->loadModel("."'".strtolower($nombreClase)."'".")->find('all');\n";
+		$cController .= "\t\t\t$"."model = $"."this->loadModel("."'".strtolower($nombreClase)."'".")->find($"."_POST[".'"'."codigo".'"'."]".");\n\n";
+		$cController .= "".$apmodificar."\n";
+		$cController .= "\t\t\t$"."mensaje = null;\n";
+		$cController .= "\t\t\ttry{\n";
+		$cController .= "\t\t\t\tif($"."model->save()){\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = 'Operación exitosa';\n";
+		$cController .= "\t\t\t\t}else{\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = 'Ha ocurrido un error';\n";
+		$cController .= "\t\t\t\t}\n";
+		$cController .= "\t\t\t}catch(Exception $"."e){\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = $"."e->getMessage();\n";
+		$cController .= "\t\t\t}\n";
+		$cController .= "\t\t\t$"."this->render('index',array('datos'=>$".ucwords($nombreClase).",'mensaje'=>$"."mensaje));\n";
+		$cController .= "\t\t}\n\n";
+
+
+		$cController .= "\t\tpublic function modificar($"."codigo){\n";
+		$cController .= "\t\t\t$".ucwords($nombreClase)." = $"."this->loadModel("."'".strtolower($nombreClase)."'".")->find('all');\n";
+		$cController .= "\t\t\t$"."model = $"."this->loadModel("."'".strtolower($nombreClase)."'".")->find($"."codigo);\n";
+		$cController .= "\t\t\t$"."mensaje = null;\n";
+		$cController .= "\t\t\ttry{\n";
+		$cController .= "\t\t\t\tif($"."model->delete()){\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = 'Operación exitosa';\n";
+		$cController .= "\t\t\t\t}else{\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = 'Ha ocurrido un error';\n";
+		$cController .= "\t\t\t\t}\n";
+		$cController .= "\t\t\t}catch(Exception $"."e){\n";
+		$cController .= "\t\t\t\t\t$"."mensaje = $"."e->getMessage();\n";
+		$cController .= "\t\t\t}\n";
+		$cController .= "\t\t\t$"."this->render('index',array('datos'=>$".ucwords($nombreClase).",'mensaje'=>$"."mensaje));\n";
+		$cController .= "\t\t}\n\n";
+
+		$cController .= "\t}\n";
+		$cController .= "?>";
+
 
 		try{
 			$archivo=fopen('application/controller/'.ucwords($nombreClase).'Controller.php','w');//abrir archivo, nombre archivo, modo apertura
-			fwrite($archivo, $cModel);
+			fwrite($archivo, $cController);
 			fclose($archivo); //cerrar archivo
 			return true;
 		}catch(Excpetion $e){

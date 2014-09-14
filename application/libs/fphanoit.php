@@ -23,8 +23,11 @@ class FPHANOIT
             
             $gnhanoit = new gnhanoit;
             if (isset($url[0])==true && isset($url[2]) == false){
+
                 $Table = $gnhanoit->index();
+
             }else if (isset($url[0]) == true && isset($url[2]) == true && $url[2] == "crear"){
+
                 $gnhanoit->crear();
             }
             require './application/libs/gnhanoit/vwgnhanoit.php';
