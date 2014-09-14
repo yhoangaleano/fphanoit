@@ -1,0 +1,16 @@
+{
+    "name": "panique/php-mvc",
+    "type": "project",
+    "description": "FPHANOIT",
+    "keywords": ["mvc", "bootstrap", "activerecord", "naked", "aplicacion"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Juan David",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    }
+}
